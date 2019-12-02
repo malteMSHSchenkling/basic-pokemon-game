@@ -11,18 +11,37 @@ class Playground {
 class PokemonPlayground extends Playground {
   constructor (width, height) {
     super(width, height)
-    this.updateGamesBoard();
-  }
 
+    this.frames = 0; //Frames also operate for points atm - there will be a separate calculation which involves frames
+    this.updatePlayground = this.updatePlayground.bind(this); //fix from Patrick
+    this.interval = setInterval(this.updatePlayground, 30); //30ms Playground refresh
+
+    this.maxDisplayWidth = screen.width*0.8;
+    this.maxDisplayHeight = screen.height*0.8;
+    //console.log(maxDisplayWidth);
+    //console.log(maxDisplayHeight);
+    
+  }
+  
+  //empties the entire canvas
+  clearPlayground () {
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  }
+  
+  //re-draws the entire canvas
   updatePlayground () {
-    //this.clearCanvas();
-    console.log("in here");
+    this.clearPlayground ();    
+    //this.ctx.fillRect(this.maxDisplayWidth-51, this.maxDisplayHeight-51, 50, 50);
+
   }
 }
-//+ instance
-//draw method
 
-//Rectangle
+
+/*class Rectangle {
+  constructor () {
+
+  }
+}*/
 
 //Player extends Rectangle
 //+ onKeyPress
@@ -34,7 +53,6 @@ class PokemonPlayground extends Playground {
 //MovingCircles
 
 window.onload = function() {
-  let canvas;
   document.getElementById("startBtn").onclick = function() {      
     startGame();
     document.getElementById("startBtn").disabled = true; //inactivate button after first time use
@@ -43,8 +61,9 @@ window.onload = function() {
   function startGame() {
     let maxDisplayWidth = screen.width;
     let maxDisplayHeight = screen.height;
-    let myPokemonPlayground = new PokemonPlayground(maxDisplayWidth, maxDisplayHeight/5*4); //change dimensions ?!
-    
+    let myPokemonPlayground = new PokemonPlayground(maxDisplayWidth*0.8, maxDisplayHeight*0.8); //nice to have: add check for different resolutions
+    //console.log(maxDisplayWidth*0.8); //1536
+    //console.log(maxDisplayHeight*0.8); //960
   }
 };
 
