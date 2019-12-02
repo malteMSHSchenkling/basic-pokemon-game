@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link href="https://fonts.googleapis.com/css?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./styles/style.css"/>
+    <title>Pokemon Survival Game</title>
+  </head>
+  <body>
+    <header>
+      <div>
+        <div>
+          <button id="startBtn">Start</button>
+        </div>
+        <div>
+          <h1>Current</h1>
+          <div>
+            <p>
+              <span>Score:</span><span id="currentScore"></span>
+              <br/>
+              <span>Time:</span><span id="currentTime"></span>
+          </div>
+        </div>
+        <div>
+          <h1>Highscores</h1>
+          <div>
+            <p>
+              <span>Highest score:</span><span id="highscore"></span>
+              <br/>
+              <span>Shortest time:</span><span id="bestTime"></span>
+            </p>
+          </div>
+        </div>
+      </div>
+      <p>Move your Pokemon with "Left-Arrow" and "Right-Arrow" keys.<br/>Hit "Space-Bar" to catch birds with a vine.</p>
+    </header>
+    <div id="playground">
+      <!--place for canvas-->
+    </div>
+    <script src="./game.js"/>
+  </body>
+  <script type="text/javascript" src="script.js"/>
+</html>
