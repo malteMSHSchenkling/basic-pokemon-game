@@ -11,16 +11,23 @@ class Playground {
 class PokemonPlayground extends Playground {
   constructor (width, height) {
     super(width, height)
+    //screen dimension variables 
+    this.maxDisplayWidth = (screen.width*0.8)-2;
+    this.maxDisplayHeight = screen.height*0.8;
+    //console.log(this.maxDisplayWidth); //1534
+    //console.log(this.maxDisplayHeight); //960
+
+    //player-size variables
+    this.playerSize = this.maxDisplayWidth*0.05; //symetric by intend
+    //console.log(this.playerSize); //76,7
+
+
+    //create class instances
+    this.myPlayer = new Player((this.maxDisplayWidth/2)-(this.playerSize/2), (this.maxDisplayHeight*0.9)-this.playerSize, this.playerSize, this.playerSize, "orange", this.ctx);
 
     this.frames = 0; //Frames also operate for points atm - there will be a separate calculation which involves frames
     this.updatePlayground = this.updatePlayground.bind(this); //fix from Patrick
     this.interval = setInterval(this.updatePlayground, 30); //30ms Playground refresh
-
-    this.maxDisplayWidth = screen.width*0.8;
-    this.maxDisplayHeight = screen.height*0.8;
-    //console.log(maxDisplayWidth);
-    //console.log(maxDisplayHeight);
-    
   }
   
   //empties the entire canvas
@@ -30,21 +37,64 @@ class PokemonPlayground extends Playground {
   
   //re-draws the entire canvas
   updatePlayground () {
-    this.clearPlayground ();    
-    //this.ctx.fillRect(this.maxDisplayWidth-51, this.maxDisplayHeight-51, 50, 50);
+    this.clearPlayground ();
+    //ground    
+    this.ctx.fillStyle = "green" ;
+    this.ctx.fillRect(1, this.maxDisplayHeight*0.9, this.maxDisplayWidth, this.maxDisplayHeight);
+    //console.log(this.maxDisplayHeight - this.maxDisplayHeight*0.9);//96
 
+    //re-draw player
+    this.myPlayer.update();
   }
 }
 
 
-/*class Rectangle {
-  constructor () {
-
+class Rectangle {
+  constructor (x,y,width,height,color){
+      this.x = x;
+      this.y = y;
+      this.width = width;
+      this.height = height;
+      this.color = color; 
   }
-}*/
+}
 
-//Player extends Rectangle
-//+ onKeyPress
+class Player extends Rectangle {
+    constructor(x,y,width,height,color,ctx){
+    super (x,y,width,height,color);
+    this.ctx = ctx;
+    this.speedXPlayer = 0;
+
+    document.onkeydown = event => {
+        switch (event.keyCode) {
+          case 37:
+            if (this.speedXPlayer === 0){ //allows only for constant direction change without exponential effect
+              this.speedXPlayer -= 3;
+              }
+            break;
+          case 39:
+            if (this.speedXPlayer === 0) { //allows only for constant direction change without exponential effect
+              this.speedXPlayer += 3;
+            }
+            break;
+          default:
+        }
+      }
+      document.onkeyup = event => {
+        this.speedXPlayer = 0;
+      }
+    }
+
+    update() {
+      //add borderVariables
+
+      //add borderCollisionCheck (full stop)
+        //include movement in case of no collision
+
+      this.ctx.fillStyle = this.color;
+      this.ctx.fillRect(this.x, this.y, this.width, this.height);
+    }
+}
 
 //Vine extends Rectangle
 
