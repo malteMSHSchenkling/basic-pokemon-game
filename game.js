@@ -60,15 +60,18 @@ class PokemonPlayground extends Playground {
     for (let i in this.circleArr) {
       //console.log("id: " + this.circleArr[i].id + " dir: " + this.circleArr[i].movementDirectionX);
       if (i < this.circleArr.length-1) { //loop to the second last position - compare current to next circle in array
-        let collisionResult = collisionStatus(Math.floor(this.circleArr[i].x),
+        let collisionStatus = false;
+        collisionStatus = getCollisionStatus(Math.floor(this.circleArr[i].x),
                                               Math.floor(this.circleArr[i].y),
                                               Math.floor(this.circleArr[Number(i)+1].x),
                                               Math.floor(this.circleArr[Number(i)+1].y),
                                               Math.floor((this.circleArr[i].radius + this.circleArr[Number(i)+1].radius)/2)); 
                                               //not yet clear why radius+radius2/2 (/2?)
-        //if (collisionResult) {
-        //  this.circleArr[i].
-        //}
+        if (collisionStatus === true) {
+          //console.log("id: " + this.circleArr[i].id + " dir: " + this.circleArr[i].speedX);
+          this.circleArr[i].speedX *= -1;
+          this.circleArr[Number(i)+1].speedX *= -1;
+        }
       }
       this.circleArr[i].update();
 
@@ -211,7 +214,7 @@ class MovingCircles {
   }
 }
 
-function collisionStatus(objectA_x, objectA_y, objectB_x, objectB_y, referenceDistance) {
+function getCollisionStatus(objectA_x, objectA_y, objectB_x, objectB_y, referenceDistance) {
   let distance = Math.sqrt(Math.pow((Math.abs(objectA_x) - Math.abs(objectB_x))/2, 2) + Math.pow((Math.abs(objectA_y) - Math.abs(objectB_y))/2, 2));
   if (Math.floor(distance) < referenceDistance) {
     //console.log("collision: " + Math.floor(distance) + " refDist: " + referenceDistance);
