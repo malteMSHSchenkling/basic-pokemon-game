@@ -147,24 +147,6 @@ class Bird extends Rectangle {
         this.maxDisplayWidth = maxDisplayWidth;
 
 
-        /* document.onkeydown = event => {
-             switch (event.keyCode) {
-                 case 37:
-                     if (this.speedXPlayer === 0) { //allows only for constant direction change without exponential effect
-                         this.speedXPlayer -= 3;
-                     }
-                     break;
-                 case 39:
-                     if (this.speedXPlayer === 0) { //allows only for constant direction change without exponential effect
-                         this.speedXPlayer += 3;
-                     }
-                     break;
-                 default:
-             }
-         }
-         document.onkeyup = event => {
-             this.speedXPlayer = 0;
-         }*/
 
     }
 
@@ -185,15 +167,8 @@ class Bird extends Rectangle {
         } else {
             this.x = rightBorder // bird starts to fly from the right side as long it is not hit
         }
-        /*         if (this.x < rightBorder) {
-                     this.x += this.speedXBird;
-                 } else {
-                     this.x = rightBorder; //reposition car on playground
-                 }*/
 
-        //console.log("Displaybreite " + this.maxDisplayWidth);
-        //console.log("Bird X Position: " + this.x)
-        //console.log("Bird Y Position: " + this.y)
+
     }
 }
 
