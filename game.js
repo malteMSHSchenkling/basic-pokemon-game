@@ -12,18 +12,29 @@ class PokemonPlayground extends Playground {
   constructor (width, height) {
     super(width, height)
     //screen dimension variables 
-    this.maxDisplayWidth = (screen.width*0.8)-2;
-    this.maxDisplayHeight = screen.height*0.8;
-    //console.log(this.maxDisplayWidth); //1534
-    //console.log(this.maxDisplayHeight); //960
+    this.maxDisplayWidth = screen.width*0.8; //1536
+    this.maxDisplayHeight = screen.height*0.8; //960  
+    this.groundHeight = this.maxDisplayHeight*0.9; //864
+    this.cloudHeight = this.maxDisplayHeight*0.1; //96
 
     //player-size variables
     this.playerSize = this.maxDisplayWidth*0.05; //symetric by intend
     //console.log(this.playerSize); //76,7
 
+    //circle size valiables
+    this.radius = this.maxDisplayWidth*0.06; //92
+    this.leftMovingCircleSpeedX = -1;
+    this.rightMovingCircleSpeedX = 1;
+    this.circleSpeedY = 1;
+
 
     //create class instances
+    this.circleArr = [];
     this.myPlayer = new Player((this.maxDisplayWidth/2)-(this.playerSize/2), (this.maxDisplayHeight*0.9)-this.playerSize, this.playerSize, this.playerSize, "orange", this.ctx);
+    console.log("ground: " + this.groundHeight);
+    console.log("cloud: " + this.cloudHeight);
+    this.circleArr.push(new MovingCircles((this.maxDisplayWidth/2-this.radius), this.cloudHeight+this.radius, this.radius, "red", 0, this.maxDisplayWidth, this.cloudHeight, this.groundHeight, this.ctx));
+    this.circleArr.push(new MovingCircles((this.maxDisplayWidth/2+this.radius), this.cloudHeight+this.radius, this.radius, "red", 0, this.maxDisplayWidth, this.cloudHeight, this.groundHeight, this.ctx));
 
     this.frames = 0; //Frames also operate for points atm - there will be a separate calculation which involves frames
     this.updatePlayground = this.updatePlayground.bind(this); //fix from Patrick
@@ -39,12 +50,17 @@ class PokemonPlayground extends Playground {
   updatePlayground () {
     this.clearPlayground ();
     //ground    
-    this.ctx.fillStyle = "green" ;
-    this.ctx.fillRect(1, this.maxDisplayHeight*0.9, this.maxDisplayWidth, this.maxDisplayHeight);
+    this.ctx.fillStyle = "green";
+    this.ctx.fillRect(0, this.maxDisplayHeight*0.9, this.maxDisplayWidth, this.maxDisplayHeight);
     //console.log(this.maxDisplayHeight - this.maxDisplayHeight*0.9);//96
 
     //re-draw player
     this.myPlayer.update();
+
+    //re-draw circles
+    for (let circle of this.circleArr) {
+      circle.update();
+    }
   }
 }
 
@@ -100,7 +116,46 @@ class Player extends Rectangle {
 
 //Bird extends Rectangle
 
-//MovingCircles
+class MovingCircles {
+  constructor (x, y, radius, color, borderLeft, borderRight, borderTop, borderBottom, ctx) {
+    this.x = x;
+    this.y = y;
+    this.radius = radius;
+    this.color = color;
+    this.borderLeft = borderLeft;
+    this.borderRight = borderRight;
+    this.borderTop = borderTop;
+    this.borderBottom = borderBottom;
+    this.ctx = ctx;
+    this.speedX = 2;
+    this.speedY = 2;
+  }
+
+  update() {
+    //bouncing off borders
+    if (this.x + this.radius >= this.borderRight) {
+      this.speedX = -2;
+    }
+    if (this.x - this.radius <= this.borderLeft) {
+      this.speedX = 2;
+    }
+    if (this.y + this.radius >= this.borderBottom) {
+      this.speedY = -2;
+    }
+    if (this.y - this.radius <= this.borderTop) {
+      this.speedY = 2;
+    }
+    this.x += this.speedX;
+    this.y += this.speedY;
+
+    this.ctx.fillStyle = this.color;
+    this.ctx.beginPath();
+    this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
+    this.ctx.fill();
+    this.ctx.closePath();
+  }
+}
+
 
 window.onload = function() {
   document.getElementById("startBtn").onclick = function() {      
