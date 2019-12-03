@@ -1,11 +1,11 @@
 class Playground {
-  constructor (width, height) {
-    this.canvas = document.createElement("canvas");
-    this.canvas.width = width;
-    this.canvas.height = height;
-    this.ctx = this.canvas.getContext("2d");
-    document.getElementById("playground").appendChild(this.canvas);
-  }
+    constructor(width, height) {
+        this.canvas = document.createElement("canvas");
+        this.canvas.width = width;
+        this.canvas.height = height;
+        this.ctx = this.canvas.getContext("2d");
+        document.getElementById("playground").appendChild(this.canvas);
+    }
 }
 
 class PokemonPlayground extends Playground {
@@ -66,49 +66,65 @@ class PokemonPlayground extends Playground {
 
 
 class Rectangle {
-  constructor (x,y,width,height,color){
-      this.x = x;
-      this.y = y;
-      this.width = width;
-      this.height = height;
-      this.color = color; 
-  }
+    constructor(x, y, width, height, color) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.color = color;
+    }
 }
 
 class Player extends Rectangle {
-    constructor(x,y,width,height,color,ctx){
-    super (x,y,width,height,color);
-    this.ctx = ctx;
-    this.speedXPlayer = 0;
-
-    document.onkeydown = event => {
-        switch (event.keyCode) {
-          case 37:
-            if (this.speedXPlayer === 0){ //allows only for constant direction change without exponential effect
-              this.speedXPlayer -= 3;
-              }
-            break;
-          case 39:
-            if (this.speedXPlayer === 0) { //allows only for constant direction change without exponential effect
-              this.speedXPlayer += 3;
-            }
-            break;
-          default:
-        }
-      }
-      document.onkeyup = event => {
+    constructor(x, y, width, height, color, ctx) {
+        super(x, y, width, height, color);
+        this.ctx = ctx;
         this.speedXPlayer = 0;
-      }
+
+        document.onkeydown = event => {
+            switch (event.keyCode) {
+                case 37:
+                    if (this.speedXPlayer === 0) { //allows only for constant direction change without exponential effect
+                        this.speedXPlayer -= 3;
+                    }
+                    break;
+                case 39:
+                    if (this.speedXPlayer === 0) { //allows only for constant direction change without exponential effect
+                        this.speedXPlayer += 3;
+                    }
+                    break;
+                default:
+            }
+        }
+        document.onkeyup = event => {
+            this.speedXPlayer = 0;
+        }
     }
 
     update() {
-      //add borderVariables
+        //add borderVariables
 
-      //add borderCollisionCheck (full stop)
+        //add borderCollisionCheck (full stop)
         //include movement in case of no collision
 
-      this.ctx.fillStyle = this.color;
-      this.ctx.fillRect(this.x, this.y, this.width, this.height);
+        this.ctx.fillStyle = this.color;
+        this.ctx.fillRect(this.x, this.y, this.width, this.height);
+
+        let leftBorder = 1;
+        let rightBorder = 1460 //incl car width 80
+
+        //checks if the car is within the boundaries of the street and repositions the car by few px if its overextending
+        if (this.x > leftBorder) {
+            this.x += this.speedXPlayer;
+        } else {
+            this.x = leftBorder; //reposition car on playground
+        }
+        if (this.x < rightBorder) {
+            this.x += this.speedXPlayer;
+        } else {
+            this.x = rightBorder; //reposition car on playground
+        }
+
     }
 }
 
@@ -158,17 +174,16 @@ class MovingCircles {
 
 
 window.onload = function() {
-  document.getElementById("startBtn").onclick = function() {      
-    startGame();
-    document.getElementById("startBtn").disabled = true; //inactivate button after first time use
-  };
-  
-  function startGame() {
-    let maxDisplayWidth = screen.width;
-    let maxDisplayHeight = screen.height;
-    let myPokemonPlayground = new PokemonPlayground(maxDisplayWidth*0.8, maxDisplayHeight*0.8); //nice to have: add check for different resolutions
-    //console.log(maxDisplayWidth*0.8); //1536
-    //console.log(maxDisplayHeight*0.8); //960
-  }
-};
+    document.getElementById("startBtn").onclick = function() {
+        startGame();
+        document.getElementById("startBtn").disabled = true; //inactivate button after first time use
+    };
 
+    function startGame() {
+        let maxDisplayWidth = screen.width;
+        let maxDisplayHeight = screen.height;
+        let myPokemonPlayground = new PokemonPlayground(maxDisplayWidth * 0.8, maxDisplayHeight * 0.8); //nice to have: add check for different resolutions
+        //console.log(maxDisplayWidth*0.8); //1536
+        //console.log(maxDisplayHeight*0.8); //960
+    }
+};
