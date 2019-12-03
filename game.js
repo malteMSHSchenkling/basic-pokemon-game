@@ -18,23 +18,19 @@ class PokemonPlayground extends Playground {
     this.cloudHeight = this.maxDisplayHeight*0.1; //96
 
     //player-size variables
-    this.playerSize = this.maxDisplayWidth*0.05; //symetric by intend
-    //console.log(this.playerSize); //76,7
+    this.playerSize = this.maxDisplayWidth*0.05; //symetric by intend: 76,7
 
     //circle size valiables
     this.radius = this.maxDisplayWidth*0.06; //92
     this.leftMovingCircleSpeedX = -1;
     this.rightMovingCircleSpeedX = 1;
-    this.circleSpeedY = 1;
-
 
     //create class instances
     this.circleArr = [];
     this.myPlayer = new Player((this.maxDisplayWidth/2)-(this.playerSize/2), (this.maxDisplayHeight*0.9)-this.playerSize, this.playerSize, this.playerSize, "orange", this.ctx);
-    console.log("ground: " + this.groundHeight);
-    console.log("cloud: " + this.cloudHeight);
-    this.circleArr.push(new MovingCircles((this.maxDisplayWidth/2-this.radius), this.cloudHeight+this.radius, this.radius, "red", 0, this.maxDisplayWidth, this.cloudHeight, this.groundHeight, this.ctx));
-    this.circleArr.push(new MovingCircles((this.maxDisplayWidth/2+this.radius), this.cloudHeight+this.radius, this.radius, "red", 0, this.maxDisplayWidth, this.cloudHeight, this.groundHeight, this.ctx));
+    this.circleArr.push(new MovingCircles(0, (this.maxDisplayWidth/2-this.radius), this.cloudHeight+this.radius, this.radius, "red", 0, this.maxDisplayWidth, this.cloudHeight, this.groundHeight, -1, this.ctx));
+    this.circleArr.push(new MovingCircles(1, (this.maxDisplayWidth/2+this.radius), this.cloudHeight+this.radius, this.radius, "red", 0, this.maxDisplayWidth, this.cloudHeight, this.groundHeight, 1, this.ctx));
+    
 
     this.frames = 0; //Frames also operate for points atm - there will be a separate calculation which involves frames
     this.updatePlayground = this.updatePlayground.bind(this); //fix from Patrick
@@ -48,18 +44,29 @@ class PokemonPlayground extends Playground {
   
   //re-draws the entire canvas
   updatePlayground () {
-    this.clearPlayground ();
+    this.clearPlayground (); //console.log("cleared");
     //ground    
     this.ctx.fillStyle = "green";
     this.ctx.fillRect(0, this.maxDisplayHeight*0.9, this.maxDisplayWidth, this.maxDisplayHeight);
-    //console.log(this.maxDisplayHeight - this.maxDisplayHeight*0.9);//96
 
     //re-draw player
     this.myPlayer.update();
 
     //re-draw circles
-    for (let circle of this.circleArr) {
-      circle.update();
+    for (let i in this.circleArr) {
+      //console.log("id: " + this.circleArr[i].id + " dir: " + this.circleArr[i].movementDirectionX);
+      if (i < this.circleArr.length-1) { //loop to the second last position - compare current to next circle in array
+        let collisionResult = collisionStatus(Math.floor(this.circleArr[i].x),
+                                              Math.floor(this.circleArr[i].y),
+                                              Math.floor(this.circleArr[Number(i)+1].x),
+                                              Math.floor(this.circleArr[Number(i)+1].y),
+                                              Math.floor((this.circleArr[i].radius + this.circleArr[Number(i)+1].radius)/2)); 
+                                              //not yet clear why radius+radius2/2 (/2?)
+        //if (collisionResult) {
+        //  this.circleArr[i].
+        //}
+      }
+      this.circleArr[i].update();
     }
   }
 }
@@ -133,7 +140,8 @@ class Player extends Rectangle {
 //Bird extends Rectangle
 
 class MovingCircles {
-  constructor (x, y, radius, color, borderLeft, borderRight, borderTop, borderBottom, ctx) {
+  constructor (id, x, y, radius, color, borderLeft, borderRight, borderTop, borderBottom, startDirection, ctx) {
+    this.id = id;
     this.x = x;
     this.y = y;
     this.radius = radius;
@@ -143,7 +151,7 @@ class MovingCircles {
     this.borderTop = borderTop;
     this.borderBottom = borderBottom;
     this.ctx = ctx;
-    this.speedX = 2;
+    this.speedX = 2 * startDirection; //- for first, + for 2nd
     this.speedY = 2;
   }
 
@@ -161,6 +169,7 @@ class MovingCircles {
     if (this.y - this.radius <= this.borderTop) {
       this.speedY = 2;
     }
+
     this.x += this.speedX;
     this.y += this.speedY;
 
@@ -172,6 +181,16 @@ class MovingCircles {
   }
 }
 
+function collisionStatus(objectA_x, objectA_y, objectB_x, objectB_y, referenceDistance) {
+  let distance = Math.sqrt(Math.pow((Math.abs(objectA_x) - Math.abs(objectB_x))/2, 2) + Math.pow((Math.abs(objectA_y) - Math.abs(objectB_y))/2, 2));
+  if (Math.floor(distance) < referenceDistance) {
+    //console.log("collision: " + Math.floor(distance) + " refDist: " + referenceDistance);
+    return true;
+  }
+  else {
+    return false;
+  }
+}
 
 window.onload = function() {
     document.getElementById("startBtn").onclick = function() {
@@ -183,7 +202,5 @@ window.onload = function() {
         let maxDisplayWidth = screen.width;
         let maxDisplayHeight = screen.height;
         let myPokemonPlayground = new PokemonPlayground(maxDisplayWidth * 0.8, maxDisplayHeight * 0.8); //nice to have: add check for different resolutions
-        //console.log(maxDisplayWidth*0.8); //1536
-        //console.log(maxDisplayHeight*0.8); //960
     }
 };
