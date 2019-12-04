@@ -7,16 +7,10 @@ class Playground {
     document.getElementById("playground").appendChild(this.canvas);
   }
 }
-
 class PokemonPlayground extends Playground {
   constructor(width, height) {
-<<<<<<< HEAD
     super(width, height);
     //screen dimension variables
-=======
-    super(width, height)
-    //screen dimension variables 
->>>>>>> origin
     this.maxDisplayWidth = screen.width * 0.8; //1536
     this.maxDisplayHeight = screen.height * 0.8; //960
     this.groundHeight = this.maxDisplayHeight * 0.9; //864
@@ -31,7 +25,6 @@ class PokemonPlayground extends Playground {
     this.rightMovingCircleSpeedY = 1.1;
     //bird-size variables
     this.birdSize = this.maxDisplayWidth * 0.04; //61
-<<<<<<< HEAD
     //Vine variables
     this.helpLetAVineGrow = 0;
     //game variables //MS
@@ -94,15 +87,6 @@ class PokemonPlayground extends Playground {
       this.ctx,
       this.maxDisplayWidth
     );
-=======
-    //console.log(this.birdSize);
-    //create class instances
-    this.circleArr = [];
-    this.myPlayer = new Player((this.maxDisplayWidth / 2) - (this.playerSize / 2), (this.maxDisplayHeight * 0.9) - this.playerSize, this.playerSize, this.playerSize, "orange", this.ctx);
-    this.circleArr.push(new MovingCircles(0, (this.maxDisplayWidth / 2 - this.radius) - 1, this.cloudHeight + this.radius, this.radius, "red", 0, this.maxDisplayWidth, this.cloudHeight, this.groundHeight, this.leftMovingCircleSpeedX, this.leftMovingCircleSpeedY, this.ctx));
-    this.circleArr.push(new MovingCircles(1, (this.maxDisplayWidth / 2 + this.radius) + 1, this.cloudHeight + this.radius, this.radius, "red", 0, this.maxDisplayWidth, this.cloudHeight, this.groundHeight, this.rightMovingCircleSpeedX, this.rightMovingCircleSpeedY, this.ctx));
-    this.myBird = new Bird((this.maxDisplayWidth), (this.cloudHeight / 2) - (this.birdSize / 2), this.birdSize, this.birdSize, "grey", this.ctx, this.maxDisplayWidth);
->>>>>>> origin
     this.frames = 0; //Frames also operate for points atm - there will be a separate calculation which involves frames
     this.updatePlayground = this.updatePlayground.bind(this); //fix from Patrick
     this.interval = setInterval(this.updatePlayground, 10); //10ms Playground refresh
@@ -114,7 +98,6 @@ class PokemonPlayground extends Playground {
   //re-draws the entire canvas
   updatePlayground() {
     this.clearPlayground(); //console.log("cleared");
-<<<<<<< HEAD
     //ground
     this.ctx.fillStyle = "green";
     this.ctx.fillRect(
@@ -149,27 +132,16 @@ class PokemonPlayground extends Playground {
     }
     //re-draw bird
     this.myBird.update();
-=======
-    //ground    
-    this.ctx.fillStyle = "green";
-    this.ctx.fillRect(0, this.maxDisplayHeight * 0.9, this.maxDisplayWidth, this.maxDisplayHeight);
->>>>>>> origin
     //re-draw player
     this.myPlayer.update();
     //re-draw circles
     for (let i in this.circleArr) {
       //check for circle to circle collision
-<<<<<<< HEAD
       if (i < this.circleArr.length - 1) {
         //loop to the second last position - compare current to next circle in array
         let circleToCircleCollisionStatus = false;
         circleToCircleCollisionStatus = getCollisionStatusCC(
           this.circleArr[i].x,
-=======
-      if (i < this.circleArr.length - 1) { //loop to the second last position - compare current to next circle in array
-        let circleToCircleCollisionStatus = false;
-        circleToCircleCollisionStatus = getCollisionStatusCC(this.circleArr[i].x,
->>>>>>> origin
           this.circleArr[i].y,
           this.circleArr[Number(i) + 1].x,
           this.circleArr[Number(i) + 1].y,
@@ -181,27 +153,18 @@ class PokemonPlayground extends Playground {
       }
       //check circle to player collision (add later a life count decrease)
       let circleToPlayerCollisionStatus = false;
-<<<<<<< HEAD
       circleToPlayerCollisionStatus = getCollisionStatusPC(
         this.circleArr[i].x,
-=======
-      circleToPlayerCollisionStatus = getCollisionStatusPC(this.circleArr[i].x,
->>>>>>> origin
         this.circleArr[i].y,
         this.myPlayer.x,
         this.myPlayer.y,
         this.myPlayer.width,
-<<<<<<< HEAD
         this.circleArr[i].radius
       );
-=======
-        this.circleArr[i].radius);
->>>>>>> origin
       if (circleToPlayerCollisionStatus === true) {
         this.circleArr[i].speedY *= -1;
       }
       this.circleArr[i].update();
-<<<<<<< HEAD
     }
     //game win / loss calculation
     this.frames += 10; //MS
@@ -227,17 +190,6 @@ class PokemonPlayground extends Playground {
       this.ctx.fillText("YOU've made it !!! EinsEins11", (this.maxDisplayWidth/5)*1.2, (this.maxDisplayHeight/5)*2.6);
       clearInterval(this.interval); //stops refesh //MS
     }
-=======
-      this.ctx.fillStyle = "black";
-      this.ctx.moveTo(Math.floor(this.circleArr[i].x), Math.floor(this.circleArr[i].y));
-      this.ctx.lineTo(Math.floor(this.myPlayer.x), Math.floor(this.myPlayer.y));
-      this.ctx.moveTo(Math.floor(this.circleArr[i].x), Math.floor(this.circleArr[i].y));
-      this.ctx.lineTo(Math.floor(this.myPlayer.x + this.myPlayer.width), Math.floor(this.myPlayer.y));
-      this.ctx.stroke();
-    }
-    //re-draw bird
-    this.myBird.update();
->>>>>>> origin
   }
 }
 
@@ -253,7 +205,6 @@ class Rectangle {
 }
 
 class Player extends Rectangle {
-<<<<<<< HEAD
   constructor(x, y, width, height, color, groundHeight, ctx) {
     super(x, y, width, height, color);
     this.ctx = ctx;
@@ -265,21 +216,10 @@ class Player extends Rectangle {
         case 37:
           if (this.speedXPlayer === 0) {
           //allows only for constant direction change without exponential effect
-=======
-  constructor(x, y, width, height, color, ctx) {
-    super(x, y, width, height, color);
-    this.ctx = ctx;
-    this.speedXPlayer = 0;
-    document.onkeydown = event => {
-      switch (event.keyCode) {
-        case 37:
-          if (this.speedXPlayer === 0) { //allows only for constant direction change without exponential effect
->>>>>>> origin
             this.speedXPlayer -= 1;
           }
           break;
         case 39:
-<<<<<<< HEAD
           if (this.speedXPlayer === 0) {
           //allows only for constant direction change without exponential effect
             this.speedXPlayer += 1;
@@ -289,12 +229,6 @@ class Player extends Rectangle {
           //console.log ("shoot: " )  
           this.growSwitch = true;
           break;
-=======
-          if (this.speedXPlayer === 0) { //allows only for constant direction change without exponential effect
-            this.speedXPlayer += 1;
-          }
-          break;
->>>>>>> origin
         default:
       }
     };
@@ -309,11 +243,7 @@ class Player extends Rectangle {
     this.ctx.fillStyle = this.color;
     this.ctx.fillRect(this.x, this.y, this.width, this.height);
     let leftBorder = 1;
-<<<<<<< HEAD
     let rightBorder = 1460; //incl car width 80
-=======
-    let rightBorder = 1460 //incl car width 80
->>>>>>> origin
     //checks if the car is within the boundaries of the street and repositions the car by few px if its overextending
     if (this.x > leftBorder) {
       this.x += this.speedXPlayer;
@@ -329,7 +259,6 @@ class Player extends Rectangle {
 }
 
 //Vine extends Rectangle
-<<<<<<< HEAD
 class Vine extends Rectangle {
   constructor(x, y, orgY, width, height, orgHeight, color, growSwitch, ctx) {
     super(x, y, width, height, color);
@@ -342,7 +271,6 @@ class Vine extends Rectangle {
   update() {
     //this.ctx.fillStyle = this.color;
     //this.ctx.fillRect(this.x, this.y, this.width, this.height);
-
     if (this.growSwitch === true && this.y >= 0) {
       this.ctx.fillStyle = this.color;
       this.ctx.fillRect(this.x, this.y, this.width, this.height);
@@ -358,9 +286,6 @@ class Vine extends Rectangle {
     }
   }
 }
-
-=======
->>>>>>> origin
 //Bird extends Rectangle
 class Bird extends Rectangle {
   constructor(x, y, width, height, color, ctx, maxDisplayWidth) {
@@ -438,7 +363,6 @@ class MovingCircles {
     this.ctx.closePath();
   }
 }
-
 function getCollisionStatusCC(
   objectA_x,
   objectA_y,
@@ -455,7 +379,6 @@ function getCollisionStatusCC(
     return false;
   }
 }
-
 function getCollisionStatusPC(
   objectA_x,
   objectA_y,
@@ -465,7 +388,6 @@ function getCollisionStatusPC(
   referenceDistance
 ) {
   let distance = 0;
-<<<<<<< HEAD
   let tempDistanceLeft = Math.sqrt(
     Math.pow(objectB_x - objectA_x, 2) + Math.pow(objectB_y - objectA_y, 2)
   );
@@ -473,10 +395,6 @@ function getCollisionStatusPC(
     Math.pow(objectB_x - objectA_x + objectB_width, 2) +
       Math.pow(objectB_y - objectA_y, 2)
   ); //yet not jump capable
-=======
-  let tempDistanceLeft = (Math.sqrt(Math.pow((objectB_x - objectA_x), 2) + Math.pow((objectB_y - objectA_y), 2)));
-  let tempDistanceRight = (Math.sqrt(Math.pow((objectB_x - objectA_x + objectB_width), 2) + Math.pow((objectB_y - objectA_y), 2))); //yet not jump capable
->>>>>>> origin
   if (tempDistanceLeft <= tempDistanceRight) {
     distance = Math.round(tempDistanceLeft);
   } else {
@@ -489,7 +407,6 @@ function getCollisionStatusPC(
   }
 }
 
-<<<<<<< HEAD
 window.onload = function() {
   //TODO re-enable Start button upon gameWon, gameOver
   document.getElementById("startBtn").onclick = function() {
@@ -503,17 +420,5 @@ window.onload = function() {
       maxDisplayWidth * 0.8,
       maxDisplayHeight * 0.8
     ); //nice to have: add check for different resolutions //check for reset of gameStatus's
-=======
-window.onload = function () {
-  document.getElementById("startBtn").onclick = function () {
-    startGame();
-    document.getElementById("startBtn").disabled = true; //inactivate button after first time use
-  };
-
-  function startGame() {
-    let maxDisplayWidth = screen.width;
-    let maxDisplayHeight = screen.height;
-    let myPokemonPlayground = new PokemonPlayground(maxDisplayWidth * 0.8, maxDisplayHeight * 0.8); //nice to have: add check for different resolutions
->>>>>>> origin
   }
 };
