@@ -26,6 +26,8 @@ class PokemonPlayground extends Playground {
     this.rightMovingCircleSpeedY = 1.1;
     //bird-size variables
     this.birdSize = this.maxDisplayWidth * 0.04; //61
+    //Vine variables
+    this.helpLetAVineGrow = 0;
     //game variables //MS
     this.gameBonusPointsLifes = 1000; //MS
     this.gameBonusPointsBirds = 100; //MS
@@ -36,17 +38,19 @@ class PokemonPlayground extends Playground {
     //create class instances
     this.circleArr = [];
     this.myPlayer = new Player(
-      this.maxDisplayWidth / 2 - this.playerSize / 2,
-      this.maxDisplayHeight * 0.9 - this.playerSize,
+      (this.maxDisplayWidth / 2) - (this.playerSize / 2),
+      (this.maxDisplayHeight * 0.9) - this.playerSize,
       this.playerSize,
       this.playerSize,
       "orange",
+	  this.groundHeight,
       this.ctx
     );
+    this.myVine = new Vine((this.myPlayer.x + this.myPlayer.width), (this.groundHeight - 5), (this.groundHeight - 5), (this.myPlayer.width / 5), 5, 5, "brown", this.myPlayer.growSwitch, this.ctx);
     this.circleArr.push(
       new MovingCircles(
         0,
-        this.maxDisplayWidth / 2 - this.radius - 1,
+        (this.maxDisplayWidth / 2 - this.radius) - 1,
         this.cloudHeight + this.radius,
         this.radius,
         "red",
@@ -62,7 +66,7 @@ class PokemonPlayground extends Playground {
     this.circleArr.push(
       new MovingCircles(
         1,
-        this.maxDisplayWidth / 2 + this.radius + 1,
+        (this.maxDisplayWidth / 2 + this.radius) + 1,
         this.cloudHeight + this.radius,
         this.radius,
         "red",
@@ -76,15 +80,14 @@ class PokemonPlayground extends Playground {
       )
     );
     this.myBird = new Bird(
-      this.maxDisplayWidth,
-      this.cloudHeight / 2 - this.birdSize / 2,
+      (this.maxDisplayWidth),
+      (this.cloudHeight / 2) - (this.birdSize / 2),
       this.birdSize,
       this.birdSize,
       "grey",
       this.ctx,
       this.maxDisplayWidth
     );
-
     this.frames = 0; //Frames also operate for points atm - there will be a separate calculation which involves frames
     this.updatePlayground = this.updatePlayground.bind(this); //fix from Patrick
     this.interval = setInterval(this.updatePlayground, 10); //10ms Playground refresh
@@ -104,6 +107,32 @@ class PokemonPlayground extends Playground {
       this.maxDisplayWidth,
       this.maxDisplayHeight
     );
+    this.ctx.fillStyle = "lightblue";
+    this.ctx.fillRect(0, 0, this.maxDisplayWidth, this.cloudHeight);
+    //re-draw vine
+    if (this.myPlayer.growSwitch === true) {
+      if (this.helpLetAVineGrow === 0) {
+        this.helpLetAVineGrow = 1;
+        this.myVine.x = (this.myPlayer.x + this.myPlayer.width);
+        this.myVine.y = (this.groundHeight - 5);
+        this.myVine.orgY = (this.groundHeight - 5);
+        this.myVine.width = (this.myPlayer.width / 5);
+        this.myVine.height = 5;
+        this.myVine.orgHeight = 5;
+        this.myVine.color = "brown";
+        this.myVine.ctx = this.ctx;
+      }
+      console.log("player: " + this.myPlayer.growSwitch + " vine: " + this.myVine.growSwitch);
+      this.myVine.growSwitch = true;
+      this.myVine.update();
+    }
+    if (this.myVine.growSwitch === false) {
+      console.log("player: " + this.myPlayer.growSwitch + " vine: " + this.myVine.growSwitch);
+      this.myPlayer.growSwitch = false;
+      this.helpLetAVineGrow = 0;
+    }
+    //re-draw bird
+    this.myBird.update();
     //re-draw player
     this.myPlayer.update();
     //re-draw circles
@@ -117,8 +146,7 @@ class PokemonPlayground extends Playground {
           this.circleArr[i].y,
           this.circleArr[Number(i) + 1].x,
           this.circleArr[Number(i) + 1].y,
-          this.circleArr[i].radius + this.circleArr[Number(i) + 1].radius
-        );
+          (this.circleArr[i].radius + this.circleArr[Number(i) + 1].radius));
         if (circleToCircleCollisionStatus === true) {
           this.circleArr[i].speedX *= -1;
           this.circleArr[Number(i) + 1].speedX *= -1;
@@ -138,25 +166,7 @@ class PokemonPlayground extends Playground {
         this.circleArr[i].speedY *= -1;
       }
       this.circleArr[i].update();
-      //this.ctx.fillStyle = "black";
-      //this.ctx.moveTo(
-      //  Math.floor(this.circleArr[i].x),
-      //  Math.floor(this.circleArr[i].y)
-      //);
-      //this.ctx.lineTo(Math.floor(this.myPlayer.x), Math.floor(this.myPlayer.y));
-      //this.ctx.moveTo(
-      //  Math.floor(this.circleArr[i].x),
-      //  Math.floor(this.circleArr[i].y)
-      //);
-      //this.ctx.lineTo(
-      //  Math.floor(this.myPlayer.x + this.myPlayer.width),
-      //  Math.floor(this.myPlayer.y)
-      //);
-      //this.ctx.stroke();
     }
-    //re-draw bird
-    this.myBird.update();
-
     //game win / loss calculation
     this.frames += 10; //MS
     this.gameScore = ((this.frames/10) + (this.gameBonusPointsBirds * this.gameBirdsCatched));
@@ -196,23 +206,29 @@ class Rectangle {
 }
 
 class Player extends Rectangle {
-  constructor(x, y, width, height, color, ctx) {
+  constructor(x, y, width, height, color, groundHeight, ctx) {
     super(x, y, width, height, color);
     this.ctx = ctx;
     this.speedXPlayer = 0;
+    this.groundHeight = groundHeight;
+    this.growSwitch = false;
     document.onkeydown = event => {
       switch (event.keyCode) {
         case 37:
           if (this.speedXPlayer === 0) {
-            //allows only for constant direction change without exponential effect
+          //allows only for constant direction change without exponential effect
             this.speedXPlayer -= 1;
           }
           break;
         case 39:
           if (this.speedXPlayer === 0) {
-            //allows only for constant direction change without exponential effect
+          //allows only for constant direction change without exponential effect
             this.speedXPlayer += 1;
           }
+          break;
+        case 32:
+          //console.log ("shoot: " )  
+          this.growSwitch = true;
           break;
         default:
       }
@@ -244,6 +260,35 @@ class Player extends Rectangle {
 }
 
 //Vine extends Rectangle
+class Vine extends Rectangle {
+  constructor(x, y, orgY, width, height, orgHeight, color, growSwitch, ctx) {
+    super(x, y, width, height, color);
+    this.orgY = orgY;
+    this.orgHeight = orgHeight;
+    this.ctx = ctx;
+    this.speedYVine = 0;
+    this.growSwitch = growSwitch;
+  }
+  update() {
+    //this.ctx.fillStyle = this.color;
+    //this.ctx.fillRect(this.x, this.y, this.width, this.height);
+
+    if (this.growSwitch === true && this.y >= 0) {
+      this.ctx.fillStyle = this.color;
+      this.ctx.fillRect(this.x, this.y, this.width, this.height);
+      this.speedYVine = 2;
+      this.y -= this.speedYVine;
+      this.height += this.speedYVine;
+    }
+    else {
+      this.y = this.orgY;
+      this.height = this.orgHeight;
+      this.speedYVine = 0;
+      this.growSwitch = false;
+    }
+  }
+}
+
 //Bird extends Rectangle
 class Bird extends Rectangle {
   constructor(x, y, width, height, color, ctx, maxDisplayWidth) {
@@ -260,7 +305,7 @@ class Bird extends Rectangle {
     let leftBorder = 1;
     let rightBorder = this.maxDisplayWidth; //incl car width 80
     //checks if the bird is within the boundaries of the street and repositions the car by few px if its overextending
-    if (this.x + this.width + 1 > leftBorder) {
+    if ((this.x + this.width + 1) > leftBorder) {
       this.x += this.speedXBird;
     } else {
       this.x = rightBorder; // bird starts to fly from the right side as long it is not hit
@@ -302,7 +347,6 @@ class MovingCircles {
     //bouncing off borders
     this.x += this.speedX;
     this.y += this.speedY;
-
     if (this.x + this.radius >= this.borderRight) {
       this.speedX *= -1;
     }
@@ -356,7 +400,6 @@ function getCollisionStatusPC(
     Math.pow(objectB_x - objectA_x + objectB_width, 2) +
       Math.pow(objectB_y - objectA_y, 2)
   ); //yet not jump capable
-
   if (tempDistanceLeft <= tempDistanceRight) {
     distance = Math.round(tempDistanceLeft);
   } else {
