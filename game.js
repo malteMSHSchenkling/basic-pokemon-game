@@ -13,7 +13,7 @@ class PokemonPlayground extends Playground {
     super(width, height)
     //screen dimension variables 
     this.maxDisplayWidth = screen.width*0.8; //1536
-    this.maxDisplayHeight = screen.height*0.8; //960  
+    this.maxDisplayHeight = screen.height*0.8; //960
     this.groundHeight = this.maxDisplayHeight*0.9; //864
     this.cloudHeight = this.maxDisplayHeight*0.1; //96
 
@@ -22,8 +22,10 @@ class PokemonPlayground extends Playground {
 
     //circle size valiables
     this.radius = this.maxDisplayWidth*0.06; //92
-    this.leftMovingCircleSpeedX = -1;
+    this.leftMovingCircleSpeedX = -1.1;      //NEW
     this.rightMovingCircleSpeedX = 1;
+    this.leftMovingCircleSpeedY = 1;         //NEW
+    this.rightMovingCircleSpeedY = 1.1;      //NEW
 
     //bird-size variables
     this.birdSize = this.maxDisplayWidth * 0.04; //61
@@ -32,13 +34,13 @@ class PokemonPlayground extends Playground {
     //create class instances
     this.circleArr = [];
     this.myPlayer = new Player((this.maxDisplayWidth/2)-(this.playerSize/2), (this.maxDisplayHeight*0.9)-this.playerSize, this.playerSize, this.playerSize, "orange", this.ctx);
-    this.circleArr.push(new MovingCircles(0, (this.maxDisplayWidth/2-this.radius), this.cloudHeight+this.radius, this.radius, "red", 0, this.maxDisplayWidth, this.cloudHeight, this.groundHeight, -1, this.ctx));
-    this.circleArr.push(new MovingCircles(1, (this.maxDisplayWidth/2+this.radius), this.cloudHeight+this.radius, this.radius, "red", 0, this.maxDisplayWidth, this.cloudHeight, this.groundHeight, 1, this.ctx));
+    this.circleArr.push(new MovingCircles(0, (this.maxDisplayWidth/2-this.radius)-1, this.cloudHeight+this.radius, this.radius, "red", 0, this.maxDisplayWidth, this.cloudHeight, this.groundHeight, this.leftMovingCircleSpeedX, this.leftMovingCircleSpeedY, this.ctx));  //NEW
+    this.circleArr.push(new MovingCircles(1, (this.maxDisplayWidth/2+this.radius)+1, this.cloudHeight+this.radius, this.radius, "red", 0, this.maxDisplayWidth, this.cloudHeight, this.groundHeight, this.rightMovingCircleSpeedX, this.rightMovingCircleSpeedY, this.ctx));//NEW
     this.myBird = new Bird((this.maxDisplayWidth), (this.cloudHeight / 2) - (this.birdSize / 2), this.birdSize, this.birdSize, "grey", this.ctx, this.maxDisplayWidth);
 
     this.frames = 0; //Frames also operate for points atm - there will be a separate calculation which involves frames
     this.updatePlayground = this.updatePlayground.bind(this); //fix from Patrick
-    this.interval = setInterval(this.updatePlayground, 30); //30ms Playground refresh
+    this.interval = setInterval(this.updatePlayground, 10); //30ms Playground refresh
   }
   
   //empties the entire canvas
@@ -58,23 +60,45 @@ class PokemonPlayground extends Playground {
 
     //re-draw circles
     for (let i in this.circleArr) {
-      //console.log("id: " + this.circleArr[i].id + " dir: " + this.circleArr[i].movementDirectionX);
+      //check for circle to circle collision
       if (i < this.circleArr.length-1) { //loop to the second last position - compare current to next circle in array
-        let collisionStatus = false;
-        collisionStatus = getCollisionStatus(Math.floor(this.circleArr[i].x),
-                                              Math.floor(this.circleArr[i].y),
-                                              Math.floor(this.circleArr[Number(i)+1].x),
-                                              Math.floor(this.circleArr[Number(i)+1].y),
-                                              Math.floor((this.circleArr[i].radius + this.circleArr[Number(i)+1].radius)/2)); 
-                                              //not yet clear why radius+radius2/2 (/2?)
-        if (collisionStatus === true) {
+        let circleToCircleCollisionStatus = false;
+        circleToCircleCollisionStatus = getCollisionStatusCC(Math.floor(this.circleArr[i].x),
+                                                             Math.floor(this.circleArr[i].y),
+                                                             Math.floor(this.circleArr[Number(i)+1].x),
+                                                             Math.floor(this.circleArr[Number(i)+1].y),
+                                                             Math.floor((this.circleArr[i].radius + this.circleArr[Number(i)+1].radius)/2)); 
+                                                             //not yet clear why radius+radius2/2 (/2?)
+        if (circleToCircleCollisionStatus === true) {
           //console.log("id: " + this.circleArr[i].id + " dir: " + this.circleArr[i].speedX);
           this.circleArr[i].speedX *= -1;
           this.circleArr[Number(i)+1].speedX *= -1;
         }
       }
+      //check circle to player collision (add later a life count decrease)
+      let circleToPlayerCollisionStatus = false;
+      //this.ctx.fillStyle = "black";
+      //this.ctx.fillRect(Math.floor(this.circleArr[i].x)-5, Math.floor(this.circleArr[i].y)-5, 10, 10);
+      //console.log("x: " + this.myPlayer.x + " y: " + Math.floor(this.myPlayer.y));
+      circleToPlayerCollisionStatus = getCollisionStatusPC(Math.floor(this.circleArr[i].x),
+                                                           Math.floor(this.circleArr[i].y),
+                                                           Math.floor(this.myPlayer.x), //can be improved
+                                                           Math.floor(this.myPlayer.y), //can be improved
+                                                           Math.floor(this.myPlayer.width),
+                                                           Math.floor(this.circleArr[i].radius),
+                                                           this.frames); //just for debugging
+                                                           //not yet clear why radius+radius2/2 (/2?)      
+      if (circleToPlayerCollisionStatus === true) {
+        this.circleArr[i].speedY *= -1;
+      }
       this.circleArr[i].update();
 
+      this.ctx.fillStyle = "black";
+      this.ctx.moveTo(Math.floor(this.circleArr[i].x), Math.floor(this.circleArr[i].y));
+      this.ctx.lineTo(Math.floor(this.myPlayer.x), Math.floor(this.myPlayer.y));
+      this.ctx.moveTo(Math.floor(this.circleArr[i].x), Math.floor(this.circleArr[i].y));
+      this.ctx.lineTo(Math.floor(this.myPlayer.x + this.myPlayer.width), Math.floor(this.myPlayer.y));
+      this.ctx.stroke();
     }
 
     //re-draw bird
@@ -104,12 +128,12 @@ class Player extends Rectangle {
             switch (event.keyCode) {
                 case 37:
                     if (this.speedXPlayer === 0) { //allows only for constant direction change without exponential effect
-                        this.speedXPlayer -= 3;
+                        this.speedXPlayer -= 1;
                     }
                     break;
                 case 39:
                     if (this.speedXPlayer === 0) { //allows only for constant direction change without exponential effect
-                        this.speedXPlayer += 3;
+                        this.speedXPlayer += 1;
                     }
                     break;
         default:
@@ -153,7 +177,7 @@ class Bird extends Rectangle {
   constructor(x, y, width, height, color, ctx, maxDisplayWidth) {
     super(x, y, width, height, color);
       this.ctx = ctx;
-      this.speedXBird = -4;
+      this.speedXBird = -2;
       this.maxDisplayWidth = maxDisplayWidth;
   }
 
@@ -174,7 +198,7 @@ class Bird extends Rectangle {
 }
 
 class MovingCircles {
-  constructor(id, x, y, radius, color, borderLeft, borderRight, borderTop, borderBottom, direction, ctx) {
+  constructor(id, x, y, radius, color, borderLeft, borderRight, borderTop, borderBottom, directionX, directionY, ctx) { //NEW
     this.id = id;
     this.x = x;
     this.y = y;
@@ -184,27 +208,31 @@ class MovingCircles {
     this.borderRight = borderRight;
     this.borderTop = borderTop;
     this.borderBottom = borderBottom;
+    this.directionX = directionX;      //NEW
+    this.directionY = directionY;      //NEW
     this.ctx = ctx;
-    this.speedX = 2 * direction;
-    this.speedY = 2;
+    this.speedX = 1 * this.directionX; //NEW
+    this.speedY = 1.5 * this.directionY; //NEW
   }
 
   update() {
     //bouncing off borders
-    if (this.x + this.radius >= this.borderRight) {
-      this.speedX = -2;
-    }
-    if (this.x - this.radius <= this.borderLeft) {
-      this.speedX = 2;
-    }
-    if (this.y + this.radius >= this.borderBottom) {
-      this.speedY = -2;
-    }
-    if (this.y - this.radius <= this.borderTop) {
-      this.speedY = 2;
-    }
     this.x += this.speedX;
     this.y += this.speedY;
+    
+    if (this.x + this.radius >= this.borderRight) {
+      this.speedX *= -1;
+    }
+    if (this.x - this.radius <= this.borderLeft) {
+      this.speedX *= -1;
+    }
+    if (this.y + this.radius >= this.borderBottom) {
+      this.speedY *= -1;
+    }
+    if (this.y - this.radius <= this.borderTop) {
+      this.speedY *= -1;
+    }
+
 
     this.ctx.fillStyle =  this.color;
     this.ctx.beginPath();
@@ -214,10 +242,38 @@ class MovingCircles {
   }
 }
 
-function getCollisionStatus(objectA_x, objectA_y, objectB_x, objectB_y, referenceDistance) {
-  let distance = Math.sqrt(Math.pow((Math.abs(objectA_x) - Math.abs(objectB_x))/2, 2) + Math.pow((Math.abs(objectA_y) - Math.abs(objectB_y))/2, 2));
-  if (Math.floor(distance) < referenceDistance) {
+function getCollisionStatusCC(objectA_x, objectA_y, objectB_x, objectB_y, referenceDistance) { //NEW
+  let distance = Math.sqrt(Math.pow((objectA_x - objectB_x)/2, 2) + Math.pow((objectA_y - objectB_y)/2, 2));
+  if (Math.floor(distance) < referenceDistance) { //NEW
     //console.log("collision: " + Math.floor(distance) + " refDist: " + referenceDistance);
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
+function getCollisionStatusPC(objectA_x, objectA_y, objectB_x, objectB_y, widthOne, widthTwo, frame) { //full NEW
+  let distance = 0;
+  let tempDistanceLeft = (Math.sqrt(Math.pow((objectA_x - objectB_x)/2, 2) + Math.pow((objectA_y - objectB_y)/2, 2)));
+  let tempDistanceRight = (Math.sqrt(Math.pow((objectA_x - objectB_x + widthOne)/2, 2) + Math.pow((objectA_y - objectB_y)/2, 2))); //yet not jump capable
+
+
+
+  if (tempDistanceLeft <= tempDistanceRight) {
+    distance = tempDistanceLeft;
+  }
+  else {
+    distance = tempDistanceRight;
+  }
+
+  if (frame%100 === 0) {
+    //console.log("Ax: " + objectA_x + " Ay: " + objectA_y + " Bx: " + objectB_x + " By: " + objectB_y + " Ar: " + widthOne + " Br: " + widthTwo);
+    //console.log("dist: " + distance + " Ydist: " + Math.abs(objectA_y - objectB_y));
+  }
+  //console.log("left: " + tempDistanceLeft + " right: " + tempDistanceRight);
+  if (distance <= widthTwo) {
+    console.log("crash: " + " dist " + distance + " collDist: " + widthTwo);
     return true;
   }
   else {
