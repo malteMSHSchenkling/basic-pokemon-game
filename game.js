@@ -1,5 +1,8 @@
 class Playground {
   constructor(width, height) {
+    if (document.getElementById("playground").childElementCount > 0) {
+      document.querySelector("canvas").remove();
+    }
     this.canvas = document.createElement("canvas");
     this.canvas.width = width;
     this.canvas.height = height;
@@ -25,15 +28,15 @@ class PokemonPlayground extends Playground {
     this.rightMovingCircleSpeedY = 1.1;
     //bird-size variables
     this.birdSize = this.maxDisplayWidth * 0.04; //61
-    //Vine variables
+    //vine variables
     this.helpLetAVineGrow = 0;
     //game variables //MS
-    this.gameBonusPointsLifes = 1000; //MS
-    this.gameBonusPointsBirds = 100; //MS
+    this.gameBonusPointsLifes = 600; //MS
+    this.gameBonusPointsBirds = 25; //MS
     this.gameBirdsCatched = 0; //MS
     this.gameScore = 0; //tied to frames = time //MS
     this.gamePlayerLifes = 3; //MS
-    this.gameWonFrames = 10000; //60sec*5 //reference (60000*5) //MS
+    this.gameMaxFrames = (60000*3); //60sec*5 //reference (60000*5) //MS
     //create class instances
     this.circleArr = [];
     this.myPlayer = new Player(
@@ -42,7 +45,7 @@ class PokemonPlayground extends Playground {
       this.playerSize,
       this.playerSize,
       "orange",
-	  this.groundHeight,
+      this.groundHeight,
       this.ctx
     );
     this.myVine = new Vine((this.myPlayer.x + this.myPlayer.width), (this.groundHeight - 5), (this.groundHeight - 5), (this.myPlayer.width / 5), 5, 5, "brown", this.myPlayer.growSwitch, this.ctx);
@@ -97,17 +100,17 @@ class PokemonPlayground extends Playground {
   }
   //re-draws the entire canvas
   updatePlayground() {
-    this.clearPlayground(); //console.log("cleared");
+    this.clearPlayground();
     //ground
-    this.ctx.fillStyle = "green";
-    this.ctx.fillRect(
+    //this.ctx.fillStyle = "green";
+    /*this.ctx.fillRect(
       0,
       this.maxDisplayHeight * 0.9,
       this.maxDisplayWidth,
       this.maxDisplayHeight
-    );
-    this.ctx.fillStyle = "lightblue";
-    this.ctx.fillRect(0, 0, this.maxDisplayWidth, this.cloudHeight);
+    );*/
+    //this.ctx.fillStyle = "lightblue";
+    //this.ctx.fillRect(0, 0, this.maxDisplayWidth, this.cloudHeight);
     //re-draw vine
     if (this.myPlayer.growSwitch === true) {
       if (this.helpLetAVineGrow === 0) {
@@ -121,12 +124,28 @@ class PokemonPlayground extends Playground {
         this.myVine.color = "brown";
         this.myVine.ctx = this.ctx;
       }
-      console.log("player: " + this.myPlayer.growSwitch + " vine: " + this.myVine.growSwitch);
+      //console.log("player: " + this.myPlayer.growSwitch + " vine: " + this.myVine.growSwitch);
       this.myVine.growSwitch = true;
+      //collision check with bird
+      let birdCollision = false;
+      birdCollision = getCollisionStatusVB(
+        this.myVine.x,
+        this.myVine.y,
+        this.myVine.width,
+        this.myBird.x,
+        this.myBird.y,
+        this.myBird.width,
+        this.myBird.height
+      );  
+      if (birdCollision === true) {
+        //console.log("col");
+        this.gameBirdsCatched++;
+        this.myVine.growSwitch = false; //let vine disappear (prevention of multi collision)
+      }
       this.myVine.update();
     }
     if (this.myVine.growSwitch === false) {
-      console.log("player: " + this.myPlayer.growSwitch + " vine: " + this.myVine.growSwitch);
+      //console.log("player: " + this.myPlayer.growSwitch + " vine: " + this.myVine.growSwitch);
       this.myPlayer.growSwitch = false;
       this.helpLetAVineGrow = 0;
     }
@@ -163,32 +182,57 @@ class PokemonPlayground extends Playground {
       );
       if (circleToPlayerCollisionStatus === true) {
         this.circleArr[i].speedY *= -1;
+        this.gamePlayerLifes--;
+      }
+      //add circle to vine collision
+      let circleToVineCollisionStatus = false;
+      if (this.myVine.growSwitch === true) {
+        circleToVineCollisionStatus = getCollisionStatusCV(
+          this.circleArr[i].x,
+          this.circleArr[i].y,
+          this.myVine.x,
+          this.myVine.y,
+          this.myVine.width,
+          this.circleArr[i].radius,
+        );
+        if (circleToVineCollisionStatus === "xrevert") {
+          this.circleArr[i].speedX *= -1;
+        }
+        if (circleToVineCollisionStatus === "yrevert") {
+          this.circleArr[i].speedY *= -1;
+          this.circleArr[i].y -= 2;
+        }
       }
       this.circleArr[i].update();
     }
-    //game win / loss calculation
+    //html update calc
     this.frames += 10; //MS
-    this.gameScore = ((this.frames/10) + (this.gameBonusPointsBirds * this.gameBirdsCatched));
-    document.getElementById("currentScore").innerText = `${this.gameScore}`;
-    document.getElementById("currentTime").innerText = `${Math.round(this.frames/1000)}`;
-
+    this.gameScore = (Math.round(this.frames/100) + (this.gameBonusPointsBirds * this.gameBirdsCatched));
+    document.getElementById("currentTime").innerText = Math.round((this.gameMaxFrames/1000) - (this.frames/1000));
+    document.getElementById("currentScore").innerText = this.gameScore;
+    document.getElementById("catchedBirds").innerText = this.gameBirdsCatched;
+    document.getElementById("currentLifes").innerText = this.gamePlayerLifes;
     //game over check //MS
     if (this.gamePlayerLifes <= 0) {
-      //add full size picture "LOST" (scaled) - or write Text add interim //MS
-      //set all speeds = 0 //MS
-      console.log("lost"); //MS
+      //add full size picture "LOST" (scaled) - or write Text add interim
+      this.ctx.fillStyle = "darkred";
+      this.ctx.font = "60px Arial";
+      this.ctx.fillText("YOU've been smashed !!! Try again ...", (this.maxDisplayWidth/5)*1, (this.maxDisplayHeight/5)*2.6);
+      clearInterval(this.interval); //stops canvas refesh
+      document.getElementById("startBtn").disabled = false; //re-activate button upon game end
     }
     //win check
-    if (this.frames >= this.gameWonFrames) { //MS
+    if (this.frames >= this.gameMaxFrames) {
       this.frames = Math.floor(this.frames/10000)*10000;
-      this.gameScore = ((this.frames/10) + ((this.gamePlayerLifes-1)*this.gameBonusPointsLifes) + (this.gameBonusPointsBirds * this.gameBirdsCatched));
-      document.getElementById("currentScore").innerText = `${this.gameScore}`;
-      document.getElementById("currentTime").innerText = `${Math.round(this.frames/1000)}`;
-      //add full size picture "WON" (scaled) - or write Text add interim //MS
+      this.gameScore = (Math.round(this.frames/100) + ((this.gamePlayerLifes-1)*this.gameBonusPointsLifes) + (this.gameBonusPointsBirds * this.gameBirdsCatched));
+      document.getElementById("currentTime").innerText = Math.round(this.frames/1000);
+      document.getElementById("currentScore").innerText = this.gameScore; //due to gameScore recalc
+      //add full size picture "WON" (scaled) - or write Text add interim
       this.ctx.fillStyle = "green";
       this.ctx.font = "60px Arial";
       this.ctx.fillText("YOU've made it !!! EinsEins11", (this.maxDisplayWidth/5)*1.2, (this.maxDisplayHeight/5)*2.6);
-      clearInterval(this.interval); //stops refesh //MS
+      clearInterval(this.interval); //stops canvas refesh
+      document.getElementById("startBtn").disabled = false; //re-activate button upon game end
     }
   }
 }
@@ -211,7 +255,10 @@ class Player extends Rectangle {
     this.speedXPlayer = 0;
     this.groundHeight = groundHeight;
     this.growSwitch = false;
+    this.myPlayerImg  = new Image();
+    this.myPlayerImg.src = "../images/pokemon.png";
     document.onkeydown = event => {
+      //console.log(event.keyCode);
       switch (event.keyCode) {
         case 37:
           if (this.speedXPlayer === 0) {
@@ -240,8 +287,9 @@ class Player extends Rectangle {
     //add borderVariables
     //add borderCollisionCheck (full stop)
     //include movement in case of no collision
-    this.ctx.fillStyle = this.color;
-    this.ctx.fillRect(this.x, this.y, this.width, this.height);
+    //this.ctx.fillStyle = this.color;
+    //this.ctx.fillRect(this.x, this.y, this.width, this.height);
+    this.ctx.drawImage(this.myPlayerImg,this.x,this.y,this.width,this.height);
     let leftBorder = 1;
     let rightBorder = 1460; //incl car width 80
     //checks if the car is within the boundaries of the street and repositions the car by few px if its overextending
@@ -267,6 +315,8 @@ class Vine extends Rectangle {
     this.ctx = ctx;
     this.speedYVine = 0;
     this.growSwitch = growSwitch;
+    //this.myVineImg  = new Image();
+    //this.myVineImg.src = "../images/vine.png";
   }
   update() {
     //this.ctx.fillStyle = this.color;
@@ -274,7 +324,8 @@ class Vine extends Rectangle {
     if (this.growSwitch === true && this.y >= 0) {
       this.ctx.fillStyle = this.color;
       this.ctx.fillRect(this.x, this.y, this.width, this.height);
-      this.speedYVine = 2;
+      //this.ctx.drawImage(this.myVineImg, 0, 0, 348, 877, this.x,this.y, this.width ,this.height);
+      this.speedYVine = 3;
       this.y -= this.speedYVine;
       this.height += this.speedYVine;
     }
@@ -293,12 +344,16 @@ class Bird extends Rectangle {
     this.ctx = ctx;
     this.speedXBird = -2;
     this.maxDisplayWidth = maxDisplayWidth;
+    this.myBirdImg  = new Image();
+    this.myBirdImg.src = "../images/angry-birds-png-46171.png";
   }
   update() {
     //add Variables
     //include movement in case of no collision
-    this.ctx.fillStyle = this.color;
-    this.ctx.fillRect(this.x, this.y, this.width, this.height);
+    //this.ctx.fillStyle = this.color;
+    //this.ctx.fillRect(this.x, this.y, this.width, this.height);
+    this.ctx.drawImage(this.myBirdImg, this.x, this.y, this.width, this.height);
+
     let leftBorder = 1;
     let rightBorder = this.maxDisplayWidth; //incl car width 80
     //checks if the bird is within the boundaries of the street and repositions the car by few px if its overextending
@@ -339,6 +394,8 @@ class MovingCircles {
     this.ctx = ctx;
     this.speedX = 1 * this.directionX;
     this.speedY = 1.5 * this.directionY;
+    this.myCircleImg  = new Image();
+    this.myCircleImg.src = "../images/ball.png";
   }
   update() {
     //bouncing off borders
@@ -355,12 +412,20 @@ class MovingCircles {
     }
     if (this.y - this.radius <= this.borderTop) {
       this.speedY *= -1;
+      this.y = this.borderTop + this.radius; //fix for pushing the button out of bounds (e.g. via vine)
     }
-    this.ctx.fillStyle = this.color;
+    //this.ctx.fillStyle = this.color;
     this.ctx.beginPath();
     this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-    this.ctx.fill();
+    //this.ctx.fill();
     this.ctx.closePath();
+    this.ctx.drawImage(
+      this.myCircleImg,
+      this.x-this.radius-4,
+      this.y-this.radius-6,
+      (this.radius*2)+7,
+      (this.radius*2)+9
+    );
   }
 }
 function getCollisionStatusCC(
@@ -373,7 +438,23 @@ function getCollisionStatusCC(
   let distance = Math.sqrt(
     Math.pow(objectA_x - objectB_x, 2) + Math.pow(objectA_y - objectB_y, 2)
   );
-  if (distance <= referenceDistance) {
+  if (distance <= referenceDistance) { //fix for sharp degrees - doesn't fix dominant Y movement
+    if (objectA_x <= objectB_x) { // A left from B
+      objectA_x-=2;
+      objectB_x+=2;
+    }
+    else if (objectA_x > objectB_x) { //B left from A
+      objectA_x+=2;
+      objectB_x-=2;
+    }
+    else if (objectA_y <= objectB_y) { //A higher B
+      objectA_y-=2;
+      objectB_y+=2;
+    }
+    else if (objectA_y > objectB_y) { //B higher A
+      objectA_y+=2;
+      objectB_y-=2;
+    }
     return true;
   } else {
     return false;
@@ -398,11 +479,68 @@ function getCollisionStatusPC(
   if (tempDistanceLeft <= tempDistanceRight) {
     distance = Math.round(tempDistanceLeft);
   } else {
-    distance = tempDistanceRight;
+    distance = Math.round(tempDistanceRight);
   }
   if (distance <= referenceDistance) {
     return true;
   } else {
+    return false;
+  }
+}
+
+function getCollisionStatusCV(
+  circleX,
+  circleY,
+  vineX,
+  vineY,
+  vineWidth,
+  referenceDistance
+) {
+  let tempDistanceXLeft = 2000;
+  let tempDistanceXRight = 2000;
+  if (circleX <= vineX) {  //circle is left from vine
+    tempDistanceXLeft = vineX - circleX;
+  }
+  else {
+    tempDistanceXRight = circleX - vineX - vineWidth;
+  }
+  let distanceX = Math.floor(Math.min(tempDistanceXLeft, tempDistanceXRight));
+  let vineTopCenterX = vineX + Math.floor((vineWidth/2)+1);
+  let vineTopCenterY = vineY + Math.floor((vineWidth/2)+1);
+  let vineTopCenterDistance = Math.sqrt(Math.pow(Math.floor((vineWidth/2)+1), 2) + Math.pow(Math.floor((vineWidth/2)+1), 2));
+  referenceDistance += vineTopCenterDistance; //add circle radius and top radius of vine
+  let distanceTop = Math.sqrt(
+      Math.pow(circleX - vineTopCenterX, 2) + Math.pow(circleY - vineTopCenterY, 2)
+    );
+  if ((distanceTop <= referenceDistance)) { //check top bounce off vine
+    //console.log("Xleft: " + tempDistanceXLeft + " XRight: " + tempDistanceXRight + " distX: " + distanceX + " distRef " + referenceDistance);
+    return "yrevert";
+  }
+  else if ((distanceX <= Math.floor(referenceDistance)) && (vineY <= circleY)) { //check horizontal bounce only if vine is higher than circle (y)
+    //console.log("Xleft: " + tempDistanceXLeft + " XRight: " + tempDistanceXRight + " distX: " + distanceX + " distRef " + referenceDistance);
+    return "xrevert";
+  }
+  else {
+    return "nothing";
+  }
+}
+
+function getCollisionStatusVB(
+  vineX,
+  vineY,
+  vineWidth,
+  birdX,
+  birdY,
+  birdWidth,
+  birdHeight
+) {
+  if ( (vineY >= (birdY + birdHeight)) && //vine top is eqal or higher than birds lower border
+       (birdX <= (vineX + vineWidth)) &&  //birds left side is equal or more left than vines right border
+       ((birdX + birdWidth) >= vineX) ) { //birds right side is equal or more right than vines left border
+    //console.log("vine bird collision " + (vineY > (birdY + birdHeight)) + " " + (birdX <= (vineX + vineWidth)) + " " + ((birdX + birdWidth) >= vineX));
+    return true;
+  }
+  else {
     return false;
   }
 }

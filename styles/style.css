@@ -70,5 +70,6 @@ body>div {
 }
 
 canvas {
+  background-image: url("/images/PokemonwWallpaper.png");
   border: 1px solid black;
 }
