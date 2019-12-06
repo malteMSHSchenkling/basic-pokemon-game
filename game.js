@@ -8,6 +8,8 @@ class Playground {
     this.canvas.height = height;
     this.ctx = this.canvas.getContext("2d");
     document.getElementById("playground").appendChild(this.canvas);
+    this.playgroundImg  = new Image();
+    this.playgroundImg.src = "../images/PokemonwWallpaper.png";
   }
 }
 class PokemonPlayground extends Playground {
@@ -20,6 +22,7 @@ class PokemonPlayground extends Playground {
     this.cloudHeight = this.maxDisplayHeight * 0.1; //96
     //player-size variables
     this.playerSize = this.maxDisplayWidth * 0.05; //symetric by intend: 76,7
+
     //circle size valiables
     this.radius = this.maxDisplayWidth * 0.06; //92
     this.leftMovingCircleSpeedX = -1.1;
@@ -101,6 +104,7 @@ class PokemonPlayground extends Playground {
   //re-draws the entire canvas
   updatePlayground() {
     this.clearPlayground();
+    this.ctx.drawImage(this.playgroundImg, 0, 0, this.canvas.width, this.canvas.height);
     //ground
     //this.ctx.fillStyle = "green";
     /*this.ctx.fillRect(
@@ -185,7 +189,7 @@ class PokemonPlayground extends Playground {
         this.gamePlayerLifes--;
       }
       //add circle to vine collision
-      let circleToVineCollisionStatus = false;
+      let circleToVineCollisionStatus;
       if (this.myVine.growSwitch === true) {
         circleToVineCollisionStatus = getCollisionStatusCV(
           this.circleArr[i].x,
@@ -215,6 +219,7 @@ class PokemonPlayground extends Playground {
     //game over check //MS
     if (this.gamePlayerLifes <= 0) {
       //add full size picture "LOST" (scaled) - or write Text add interim
+      this.ctx.drawImage(this.playgroundImg, 0, 0, this.canvas.width, this.canvas.height);
       this.ctx.fillStyle = "darkred";
       this.ctx.font = "60px Arial";
       this.ctx.fillText("YOU've been smashed !!! Try again ...", (this.maxDisplayWidth/5)*1, (this.maxDisplayHeight/5)*2.6);
@@ -228,6 +233,7 @@ class PokemonPlayground extends Playground {
       document.getElementById("currentTime").innerText = Math.round(this.frames/1000);
       document.getElementById("currentScore").innerText = this.gameScore; //due to gameScore recalc
       //add full size picture "WON" (scaled) - or write Text add interim
+      this.ctx.drawImage(this.playgroundImg, 0, 0, this.canvas.width, this.canvas.height);
       this.ctx.fillStyle = "green";
       this.ctx.font = "60px Arial";
       this.ctx.fillText("YOU've made it !!! EinsEins11", (this.maxDisplayWidth/5)*1.2, (this.maxDisplayHeight/5)*2.6);
@@ -439,7 +445,7 @@ function getCollisionStatusCC(
     Math.pow(objectA_x - objectB_x, 2) + Math.pow(objectA_y - objectB_y, 2)
   );
   if (distance <= referenceDistance) { //fix for sharp degrees - doesn't fix dominant Y movement
-    if (objectA_x <= objectB_x) { // A left from B
+    /*if (objectA_x <= objectB_x) { // A left from B
       objectA_x-=2;
       objectB_x+=2;
     }
@@ -454,7 +460,7 @@ function getCollisionStatusCC(
     else if (objectA_y > objectB_y) { //B higher A
       objectA_y+=2;
       objectB_y-=2;
-    }
+    }*/
     return true;
   } else {
     return false;
@@ -508,6 +514,7 @@ function getCollisionStatusCV(
   let vineTopCenterX = vineX + Math.floor((vineWidth/2)+1);
   let vineTopCenterY = vineY + Math.floor((vineWidth/2)+1);
   let vineTopCenterDistance = Math.sqrt(Math.pow(Math.floor((vineWidth/2)+1), 2) + Math.pow(Math.floor((vineWidth/2)+1), 2));
+  let referenceDistanceX = referenceDistance;
   referenceDistance += vineTopCenterDistance; //add circle radius and top radius of vine
   let distanceTop = Math.sqrt(
       Math.pow(circleX - vineTopCenterX, 2) + Math.pow(circleY - vineTopCenterY, 2)
@@ -516,7 +523,7 @@ function getCollisionStatusCV(
     //console.log("Xleft: " + tempDistanceXLeft + " XRight: " + tempDistanceXRight + " distX: " + distanceX + " distRef " + referenceDistance);
     return "yrevert";
   }
-  else if ((distanceX <= Math.floor(referenceDistance)) && (vineY <= circleY)) { //check horizontal bounce only if vine is higher than circle (y)
+  else if ((distanceX <= referenceDistanceX) && (vineY <= circleY)) { //check horizontal bounce only if vine is higher than circle (y)
     //console.log("Xleft: " + tempDistanceXLeft + " XRight: " + tempDistanceXRight + " distX: " + distanceX + " distRef " + referenceDistance);
     return "xrevert";
   }
