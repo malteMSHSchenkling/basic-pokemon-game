@@ -21,8 +21,7 @@ class PokemonPlayground extends Playground {
     this.groundHeight = this.maxDisplayHeight * 0.9; //864
     this.cloudHeight = this.maxDisplayHeight * 0.1; //96
     //player-size variables
-    this.playerSize = this.maxDisplayWidth * 0.05; //symetric by intend: 76,7
-
+    this.playerCRadius = this.maxDisplayWidth * 0.03; //~ 76
     //circle size valiables
     this.radius = this.maxDisplayWidth * 0.06; //92
     this.leftMovingCircleSpeedX = -1.1;
@@ -42,16 +41,15 @@ class PokemonPlayground extends Playground {
     this.gameMaxFrames = (60000*3); //60sec*5 //reference (60000*5) //MS
     //create class instances
     this.circleArr = [];
-    this.myPlayer = new Player(
-      (this.maxDisplayWidth / 2) - (this.playerSize / 2),
-      (this.maxDisplayHeight * 0.9) - this.playerSize,
-      this.playerSize,
-      this.playerSize,
+    this.myPlayerC = new PlayerC (
+      (this.maxDisplayWidth / 2),
+      (this.groundHeight - this.playerCRadius),
+      this.playerCRadius,
+      this.maxDisplayWidth,
       "orange",
-      this.groundHeight,
       this.ctx
     );
-    this.myVine = new Vine((this.myPlayer.x + this.myPlayer.width), (this.groundHeight - 5), (this.groundHeight - 5), (this.myPlayer.width / 5), 5, 5, "brown", this.myPlayer.growSwitch, this.ctx);
+    this.myVine = new Vine((this.myPlayerC.circleCenterX + this.myPlayerC.circleRadius), (this.groundHeight - 5), (this.groundHeight - 5), ((this.myPlayerC.circleRadius*2) / 5), 5, 5, "brown", this.myPlayerC.growSwitch, this.ctx);
     this.circleArr.push(
       new MovingCircles(
         0,
@@ -116,19 +114,18 @@ class PokemonPlayground extends Playground {
     //this.ctx.fillStyle = "lightblue";
     //this.ctx.fillRect(0, 0, this.maxDisplayWidth, this.cloudHeight);
     //re-draw vine
-    if (this.myPlayer.growSwitch === true) {
+      if (this.myPlayerC.growSwitch === true) {
       if (this.helpLetAVineGrow === 0) {
         this.helpLetAVineGrow = 1;
-        this.myVine.x = (this.myPlayer.x + this.myPlayer.width);
+        this.myVine.x = (this.myPlayerC.circleCenterX + this.myPlayerC.circleRadius);
         this.myVine.y = (this.groundHeight - 5);
         this.myVine.orgY = (this.groundHeight - 5);
-        this.myVine.width = (this.myPlayer.width / 5);
+        this.myVine.width = ((this.myPlayerC.circleRadius*2) / 5);
         this.myVine.height = 5;
         this.myVine.orgHeight = 5;
         this.myVine.color = "brown";
         this.myVine.ctx = this.ctx;
       }
-      //console.log("player: " + this.myPlayer.growSwitch + " vine: " + this.myVine.growSwitch);
       this.myVine.growSwitch = true;
       //collision check with bird
       let birdCollision = false;
@@ -149,14 +146,13 @@ class PokemonPlayground extends Playground {
       this.myVine.update();
     }
     if (this.myVine.growSwitch === false) {
-      //console.log("player: " + this.myPlayer.growSwitch + " vine: " + this.myVine.growSwitch);
-      this.myPlayer.growSwitch = false;
+      this.myPlayerC.growSwitch = false;
       this.helpLetAVineGrow = 0;
     }
     //re-draw bird
     this.myBird.update();
     //re-draw player
-    this.myPlayer.update();
+    this.myPlayerC.update();
     //re-draw circles
     for (let i in this.circleArr) {
       //check for circle to circle collision
@@ -168,24 +164,53 @@ class PokemonPlayground extends Playground {
           this.circleArr[i].y,
           this.circleArr[Number(i) + 1].x,
           this.circleArr[Number(i) + 1].y,
-          (this.circleArr[i].radius + this.circleArr[Number(i) + 1].radius));
+          (this.circleArr[i].radius + this.circleArr[Number(i) + 1].radius)
+        );
+        let distanceY = (this.circleArr[i].y - this.circleArr[Number(i) + 1].y);
+        let distance = Math.sqrt(
+          Math.pow(this.circleArr[i].x - this.circleArr[Number(i) + 1].x, 2) + Math.pow(this.circleArr[i].y - this.circleArr[Number(i) + 1].y, 2)
+        );
+        let collisionArc = Math.abs(Math.sin(distanceY/distance)); //can reach max 180° so -1 to 1
+        //console.log("dist: " + distance + " distY: " + distanceY + " deg: " + collisionArc);
+        //console.log("coll CP");
         if (circleToCircleCollisionStatus === true) {
-          this.circleArr[i].speedX *= -1;
-          this.circleArr[Number(i) + 1].speedX *= -1;
+          if (collisionArc >= 0.5) {
+            console.log("Y coll: " + collisionArc + " dist " + distance);
+            this.circleArr[i].speedY *= -1;
+            this.circleArr[Number(i) + 1].speedY *= -1;
+          }
+          else {
+            console.log("X coll: " + collisionArc + " dist " + distance);
+            this.circleArr[i].speedX *= -1;
+            this.circleArr[Number(i) + 1].speedX *= -1;
+          }
         }
       }
-      //check circle to player collision (add later a life count decrease)
-      let circleToPlayerCollisionStatus = false;
-      circleToPlayerCollisionStatus = getCollisionStatusPC(
+      let circleToPlayerCCollisionStatus = false;
+      circleToPlayerCCollisionStatus = getCollisionStatusCC(
         this.circleArr[i].x,
         this.circleArr[i].y,
-        this.myPlayer.x,
-        this.myPlayer.y,
-        this.myPlayer.width,
-        this.circleArr[i].radius
+        this.myPlayerC.circleCenterX,
+        this.myPlayerC.circleCenterY,
+        (this.circleArr[i].radius + this.myPlayerC.circleRadius)
       );
-      if (circleToPlayerCollisionStatus === true) {
-        this.circleArr[i].speedY *= -1;
+      if (circleToPlayerCCollisionStatus === true) {
+        //calc arc and decide to witch x or Y speeds
+        let distanceY = (this.circleArr[i].y - this.myPlayerC.circleCenterY);
+        let distance = Math.sqrt(
+          Math.pow(this.circleArr[i].x - this.myPlayerC.circleCenterX, 2) + Math.pow(this.circleArr[i].y - this.myPlayerC.circleCenterY, 2)
+        );
+        let collisionArc = Math.abs(Math.sin(distanceY/distance)); //can reach max 180° so -1 to 1
+        //console.log("dist: " + distance + " distY: " + distanceY + " deg: " + collisionArc);
+        //console.log("coll CP");
+        if (collisionArc >= 0.5) {
+          console.log("Y coll: " + collisionArc + " dist " + distance);
+          this.circleArr[i].speedY *= -1;
+        }
+        else {
+          console.log("X coll: " + collisionArc + " dist " + distance);
+          this.circleArr[i].speedX *= -1;
+        }
         this.gamePlayerLifes--;
       }
       //add circle to vine collision
@@ -254,17 +279,20 @@ class Rectangle {
   }
 }
 
-class Player extends Rectangle {
-  constructor(x, y, width, height, color, groundHeight, ctx) {
-    super(x, y, width, height, color);
+//circle base class to be introduced due to the player being now a circle too 
+class PlayerC {
+  constructor (circleCenterX, circleCenterY, circleRadius, rightBorderX, color, ctx) {
+    this.circleCenterX = circleCenterX;
+    this.circleCenterY = circleCenterY;
+    this.circleRadius = circleRadius;
+    this.rightBorderX = rightBorderX;
+    this.color = color;
     this.ctx = ctx;
     this.speedXPlayer = 0;
-    this.groundHeight = groundHeight;
     this.growSwitch = false;
     this.myPlayerImg  = new Image();
     this.myPlayerImg.src = "./images/pokemon.png";
-    document.onkeydown = event => {
-      //console.log(event.keyCode);
+    document.onkeydown = event => { //supports only one key hit at a time unfortunatelly
       switch (event.keyCode) {
         case 37:
           if (this.speedXPlayer === 0) {
@@ -279,7 +307,6 @@ class Player extends Rectangle {
           }
           break;
         case 32:
-          //console.log ("shoot: " )  
           this.growSwitch = true;
           break;
         default:
@@ -289,26 +316,25 @@ class Player extends Rectangle {
       this.speedXPlayer = 0;
     };
   }
-  update() {
-    //add borderVariables
-    //add borderCollisionCheck (full stop)
-    //include movement in case of no collision
-    //this.ctx.fillStyle = this.color;
-    //this.ctx.fillRect(this.x, this.y, this.width, this.height);
-    this.ctx.drawImage(this.myPlayerImg,this.x,this.y,this.width,this.height);
+  update () {
     let leftBorder = 1;
-    let rightBorder = 1460; //incl car width 80
-    //checks if the car is within the boundaries of the street and repositions the car by few px if its overextending
-    if (this.x > leftBorder) {
-      this.x += this.speedXPlayer;
+    let rightBorder = this.rightBorderX;
+    if ((this.circleCenterX - this.circleRadius) > leftBorder) { //circle is away form left border
+      this.circleCenterX += this.speedXPlayer;
     } else {
-      this.x = leftBorder; //reposition car on playground
+      this.circleCenterX = (leftBorder + this.circleRadius); //reposition car on playground
     }
-    if (this.x < rightBorder) {
-      this.x += this.speedXPlayer;
+    if ((this.circleCenterX + this.circleRadius) < rightBorder) { //circle is away from right border
+      this.circleCenterX += this.speedXPlayer;
     } else {
-      this.x = rightBorder; //reposition car on playground
+      this.circleCenterX = (rightBorder - this.circleRadius); //reposition car on playground
     }
+    //this.ctx.fillStyle = this.color;
+    this.ctx.beginPath();
+    this.ctx.arc(this.circleCenterX, this.circleCenterY, this.circleRadius, 0, Math.PI * 2);
+    //this.ctx.fill();
+    this.ctx.closePath();
+    this.ctx.drawImage(this.myPlayerImg, (this.circleCenterX - this.circleRadius), (this.circleCenterY - this.circleRadius), (this.circleRadius*2), (this.circleRadius*2)); //correct coords
   }
 }
 
@@ -434,6 +460,7 @@ class MovingCircles {
     );
   }
 }
+
 function getCollisionStatusCC(
   objectA_x,
   objectA_y,
@@ -444,49 +471,6 @@ function getCollisionStatusCC(
   let distance = Math.sqrt(
     Math.pow(objectA_x - objectB_x, 2) + Math.pow(objectA_y - objectB_y, 2)
   );
-  if (distance <= referenceDistance) { //fix for sharp degrees - doesn't fix dominant Y movement
-    /*if (objectA_x <= objectB_x) { // A left from B
-      objectA_x-=2;
-      objectB_x+=2;
-    }
-    else if (objectA_x > objectB_x) { //B left from A
-      objectA_x+=2;
-      objectB_x-=2;
-    }
-    else if (objectA_y <= objectB_y) { //A higher B
-      objectA_y-=2;
-      objectB_y+=2;
-    }
-    else if (objectA_y > objectB_y) { //B higher A
-      objectA_y+=2;
-      objectB_y-=2;
-    }*/
-    return true;
-  } else {
-    return false;
-  }
-}
-function getCollisionStatusPC(
-  objectA_x,
-  objectA_y,
-  objectB_x,
-  objectB_y,
-  objectB_width,
-  referenceDistance
-) {
-  let distance = 0;
-  let tempDistanceLeft = Math.sqrt(
-    Math.pow(objectB_x - objectA_x, 2) + Math.pow(objectB_y - objectA_y, 2)
-  );
-  let tempDistanceRight = Math.sqrt(
-    Math.pow(objectB_x - objectA_x + objectB_width, 2) +
-      Math.pow(objectB_y - objectA_y, 2)
-  ); //yet not jump capable
-  if (tempDistanceLeft <= tempDistanceRight) {
-    distance = Math.round(tempDistanceLeft);
-  } else {
-    distance = Math.round(tempDistanceRight);
-  }
   if (distance <= referenceDistance) {
     return true;
   } else {
