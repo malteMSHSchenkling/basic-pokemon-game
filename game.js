@@ -9,7 +9,7 @@ class Playground {
     this.ctx = this.canvas.getContext("2d");
     document.getElementById("playground").appendChild(this.canvas);
     this.playgroundImg  = new Image();
-    this.playgroundImg.src = "../images/PokemonwWallpaper.png";
+    this.playgroundImg.src = "./images/PokemonwWallpaper.png";
   }
 }
 class PokemonPlayground extends Playground {
@@ -262,7 +262,7 @@ class Player extends Rectangle {
     this.groundHeight = groundHeight;
     this.growSwitch = false;
     this.myPlayerImg  = new Image();
-    this.myPlayerImg.src = "../images/pokemon.png";
+    this.myPlayerImg.src = "./images/pokemon.png";
     document.onkeydown = event => {
       //console.log(event.keyCode);
       switch (event.keyCode) {
@@ -322,7 +322,7 @@ class Vine extends Rectangle {
     this.speedYVine = 0;
     this.growSwitch = growSwitch;
     //this.myVineImg  = new Image();
-    //this.myVineImg.src = "../images/vine.png";
+    //this.myVineImg.src = "./images/vine.png";
   }
   update() {
     //this.ctx.fillStyle = this.color;
@@ -351,7 +351,7 @@ class Bird extends Rectangle {
     this.speedXBird = -2;
     this.maxDisplayWidth = maxDisplayWidth;
     this.myBirdImg  = new Image();
-    this.myBirdImg.src = "../images/angry-birds-png-46171.png";
+    this.myBirdImg.src = "./images/angry-birds-png-46171.png";
   }
   update() {
     //add Variables
@@ -401,7 +401,7 @@ class MovingCircles {
     this.speedX = 1 * this.directionX;
     this.speedY = 1.5 * this.directionY;
     this.myCircleImg  = new Image();
-    this.myCircleImg.src = "../images/ball.png";
+    this.myCircleImg.src = "./images/ball.png";
   }
   update() {
     //bouncing off borders
